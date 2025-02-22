@@ -13,7 +13,6 @@ I will need to program different ways to implement life supporting aspects and s
 ### Energy Supply
 
 The base will need energy so I am going to need to implement different ideas for the base to get energy. I will need to program in systems to replication ***Solar Panels***, ***Batteries***, or other energy sources.
-
 ### Habitats
 
 I am not that good at C yet to implement, render, and create an actual space base in the code. However for the simulation to be accurate I will need to program different facilities into the simulation. This will include things like ***Living Quarters***, ***Recreation Areas***, ***Workspaces***, along with things like ***Communications***, ***Energy Disposal***, ***Computer Room***, etc. These facilities will impact the different factors, which I will come onto next.
