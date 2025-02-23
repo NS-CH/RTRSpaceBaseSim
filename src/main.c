@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-#include "includes/station_facilities.h"
+#include "includes/station_facilities.c"
 
 // PREPROCESSOR DEFINES OF SIMULATION INDEPENDENT VARIABLES
 
@@ -27,7 +27,7 @@
 // Enum State for Crewmember
 
 typedef enum Crew_State { Active = 0, Deactive = 1, Dead = 2 } Crew_State;
-typedef enum Station_State { Good = 0, Rationing = 1, Dead = 2 } Station_State;
+typedef enum Station_State { Good = 0, Rationing = 1, Failed = 2 } Station_State;
 
 typedef struct Crewmember 
 {
@@ -49,6 +49,7 @@ typedef struct Space_Station
   double energy_supply;
   Station_State state;
   Crewmember* crew[INITIAL_CREW_MEMBER_NUM];
+  Space_Station_Facilities station_facilities[10];
 } Space_Station;
 
 // Initalise Members in the Space Station
@@ -72,6 +73,8 @@ void initialise_space_station(Space_Station* station)
     station->crew[i]->state = 0; // ACTIVE by Default
     station->crew[i]->is_sick = false;
   }
+
+  initialise_station_facilities(station->station_facilities);
 }
 
 // Function to get Crew Count
@@ -115,7 +118,7 @@ void crew_eat(Space_Station* station)
     total_food_used += FOOD_CALORIES_CONSUMPTION_PERSON;
   }
 
-  if (food_supply < (total_food_used * DAYS_SUPPLY_LEFT_BEFORE_END))
+  if (station->food_supply < (total_food_used * DAYS_SUPPLY_LEFT_BEFORE_END))
   {
     station->state = 1; // Sets state of the station to be Rationing
   }
@@ -137,7 +140,7 @@ void crew_drink(Space_Station* station)
     total_water_used += WATER_GALLON_CONSUMPTION_PERSON;
   }
 
-  if (water_supply < (total_water_used * DAYS_SUPPLY_LEFT_BEFORE_END))
+  if (station->water_supply < (total_water_used * DAYS_SUPPLY_LEFT_BEFORE_END))
   {
     station->state = 1;
   }
@@ -150,9 +153,21 @@ void crew_drink(Space_Station* station)
   station->water_supply -= total_water_used;
 }
 
-void station_use_basic_energy(Space_Station* station)
+// Facility Manager
+
+void facility_manager(Space_Station* station)
 {
-  station->energy_supply -= (INITIAL_ENERGY_SUPPLY * 0.1); // Uses 10% of original energy supply
+  double total_energy_use = get_total_energy_use(station->station_facilities);
+  double total_energy_production = get_total_energy_produce(station->station_facilities);
+  double total_food_production = get_total_food_produce(station->station_facilities);
+  double total_water_production = get_total_water_produce(station->station_facilities);
+  double total_oxygen_production = get_total_oxygen_produce(station->station_facilities);
+
+  station->energy_supply -= total_energy_use;
+  station->energy_supply += total_energy_production;
+  station->food_supply += total_food_production;
+  station->water_supply += total_water_production;
+  station->oxygen_supply += total_oxygen_production;
 }
 
 // Function to simulation one day / iteration of simulation
@@ -185,6 +200,10 @@ void simulate_iteration(Space_Station* station)
   
   crew_eat(station);
   crew_drink(station);
+
+  // Call Facility Manager
+  
+  facility_manager(station);
 
   // Prints Data to the Console
 
