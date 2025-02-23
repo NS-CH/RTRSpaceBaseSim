@@ -58,6 +58,7 @@ void initialise_space_station(Space_Station* station)
   // Initialise variables for the crewmembers of station
   for (int i = 0; i < INITIAL_CREW_MEMBER_NUM; i++)
   {
+    station->crew[i] = (Crewmember*)malloc(sizeof(Crewmember));
     station->crew[i]->health = 100;
     station->crew[i]->energy = 100;
     station->crew[i]->wellbeing = 100;
@@ -70,7 +71,7 @@ void initialise_space_station(Space_Station* station)
 
 int get_active_crew_count(Space_Station* station)
 {
-  int active_crew_count;
+  int active_crew_count = 0;
   for (int i = 0; i < INITIAL_CREW_MEMBER_NUM; i++)
   {
     if (station->crew[i]->state == Active)
@@ -84,7 +85,7 @@ int get_active_crew_count(Space_Station* station)
 
 int get_total_crew_count(Space_Station* station)
 {
-  int total_crew_count;
+  int total_crew_count = 0;
   for (int i = 0; i < INITIAL_CREW_MEMBER_NUM; i++)
   {
     if (station->crew[i]->state != Dead)
@@ -153,6 +154,15 @@ int main()
   Space_Station space_station;
   initialise_space_station(&space_station);
   simulate_iteration(&space_station);
+
+  char testing_holder[30];
+
+  scanf("%s", &testing_holder);
+
+  for (int i = 0; i < INITIAL_CREW_MEMBER_NUM; i++)
+  {
+    free(space_station.crew[i]);
+  }
 
   return 0;
 }
