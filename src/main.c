@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+#include "includes/station_facilities.h"
+
 // PREPROCESSOR DEFINES OF SIMULATION INDEPENDENT VARIABLES
 
 #define INITIAL_CREW_MEMBER_NUM 6
@@ -13,8 +15,10 @@
 #define INITIAL_OXYGEN 700 // TODO: MAKE OXYGEN COUNT A NUMBER BASED ON ACTUAL FACT
 #define INITIAL_ENERGY_SUPPLY 300
 #define FOOD_CALORIES_CONSUMPTION_PERSON 3250
-#define WATER_GALLON_CONSUMPTION_PERSON 12
+#define WATER_GALLON_CONSUMPTION_PERSON 0.55
 #define SURVIVAL_WITHOUT_LIFE_NEEDS_COUNT 5
+
+#define DAYS_SUPPLY_LEFT_BEFORE_END 10
 
 // MAIN CODE
 //
@@ -23,6 +27,7 @@
 // Enum State for Crewmember
 
 typedef enum Crew_State { Active = 0, Deactive = 1, Dead = 2 } Crew_State;
+typedef enum Station_State { Good = 0, Rationing = 1, Dead = 2 } Station_State;
 
 typedef struct Crewmember 
 {
@@ -42,6 +47,7 @@ typedef struct Space_Station
   double water_supply;
   double oxygen_supply;
   double energy_supply;
+  Station_State state;
   Crewmember* crew[INITIAL_CREW_MEMBER_NUM];
 } Space_Station;
 
@@ -63,10 +69,11 @@ void initialise_space_station(Space_Station* station)
     station->crew[i]->energy = 100;
     station->crew[i]->wellbeing = 100;
     station->crew[i]->day_without_life_supply = 0;
-    station->crew[i]->state = Active;
+    station->crew[i]->state = 0; // ACTIVE by Default
     station->crew[i]->is_sick = false;
   }
 }
+
 // Function to get Crew Count
 
 int get_active_crew_count(Space_Station* station)
@@ -97,15 +104,64 @@ int get_total_crew_count(Space_Station* station)
   return total_crew_count;
 }
 
+// MID ITERATION TASKS AND EVENTS FUNCTIONS
+
+void crew_eat(Space_Station* station)
+{
+  int total_food_used = 0;
+
+  for (int i = 0; i < get_total_crew_count(station); i++)
+  {
+    total_food_used += FOOD_CALORIES_CONSUMPTION_PERSON;
+  }
+
+  if (food_supply < (total_food_used * DAYS_SUPPLY_LEFT_BEFORE_END))
+  {
+    station->state = 1; // Sets state of the station to be Rationing
+  }
+
+  if (station->state == 1)
+  {
+    total_food_used /= 2; // If the state is rationing, half the amount of food consumption
+  }
+
+  station->food_supply -= total_food_used;
+}
+
+void crew_drink(Space_Station* station)
+{
+  int total_water_used = 0;
+
+  for (int i = 0; i < get_total_crew_count(station); i++)
+  {
+    total_water_used += WATER_GALLON_CONSUMPTION_PERSON;
+  }
+
+  if (water_supply < (total_water_used * DAYS_SUPPLY_LEFT_BEFORE_END))
+  {
+    station->state = 1;
+  }
+
+  if (station->state = 1)
+  {
+    total_water_used *= 0.8;
+  }
+
+  station->water_supply -= total_water_used;
+}
+
+void station_use_basic_energy(Space_Station* station)
+{
+  station->energy_supply -= (INITIAL_ENERGY_SUPPLY * 0.1); // Uses 10% of original energy supply
+}
+
 // Function to simulation one day / iteration of simulation
 
 void simulate_iteration(Space_Station* station)
 {
   // Change Stations supply counts
-  station->food_supply -= (FOOD_CALORIES_CONSUMPTION_PERSON * get_total_crew_count(station));
-  station->water_supply -= (WATER_GALLON_CONSUMPTION_PERSON * get_total_crew_count(station));
+
   station->oxygen_supply -= 10; // TODO: MAKE OXYGEN SUPPLY VARIABLE ON ACTUAL AMOUNT
-  station->energy_supply -= (INITIAL_ENERGY_SUPPLY * 0.1); // Subtracts energy count by 10% of inital energy count;
   
   // Updates Crewmembers variables
 
@@ -122,6 +178,13 @@ void simulate_iteration(Space_Station* station)
       station->crew[i]->wellbeing -= 7;
     }
   }
+
+  // Create Mid-Iteration tasks / Events that will affect the simulate_iteration
+
+  // Call eating Function
+  
+  crew_eat(station);
+  crew_drink(station);
 
   // Prints Data to the Console
 
@@ -153,11 +216,12 @@ int main()
 {
   Space_Station space_station;
   initialise_space_station(&space_station);
-  simulate_iteration(&space_station);
 
-  char testing_holder[30];
-
-  scanf("%s", &testing_holder);
+  for (int i = 0; i < 5; i++)
+  {
+    simulate_iteration(&space_station);
+    printf("----------");
+  }
 
   for (int i = 0; i < INITIAL_CREW_MEMBER_NUM; i++)
   {
