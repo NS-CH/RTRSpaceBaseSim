@@ -6,6 +6,7 @@
 #include <stdbool.h>
 
 #include "includes/station_facilities.c"
+#include "includes/rand_events.c"
 
 // PREPROCESSOR DEFINES OF SIMULATION INDEPENDENT VARIABLES
 
@@ -233,15 +234,21 @@ void simulate_iteration(Space_Station* station)
 
 int main()
 {
+  // Allows for random events
+  srand(time(NULL));
+
+  // Initialises space station
   Space_Station space_station;
   initialise_space_station(&space_station);
 
+  // Simulates iterations for sets number of times
   for (int i = 0; i < 5; i++)
   {
     simulate_iteration(&space_station);
     printf("----------");
   }
 
+  // Frees the allocates memory for the space station crew
   for (int i = 0; i < INITIAL_CREW_MEMBER_NUM; i++)
   {
     free(space_station.crew[i]);
