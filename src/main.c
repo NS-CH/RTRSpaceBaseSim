@@ -7,6 +7,7 @@
 
 #include "includes/station_facilities.c"
 #include "includes/rand_events.c"
+#include "includes/manage_station.c"
 
 // PREPROCESSOR DEFINES OF SIMULATION INDEPENDENT VARIABLES
 
